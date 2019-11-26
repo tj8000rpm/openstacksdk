@@ -287,6 +287,27 @@ class TestNetwork(base.TestCase):
         ):
             self.cloud.create_network("netname", mtu_size="fourty_two")
 
+    def test_create_network_with_qos_policy_id(self):
+        policy_id = 'test-qos-policy-id'
+        mock_new_network_rep = copy.copy(self.mock_new_network_rep)
+        mock_new_network_rep['qos_policy_id'] = policy_id
+        self.register_uris([
+            dict(method='POST',
+                 uri=self.get_mock_url(
+                     'network', 'public', append=['v2.0', 'networks.json']),
+                 json={'network': mock_new_network_rep},
+                 validate=dict(
+                     json={'network': {
+                         'admin_state_up': True,
+                         'name': 'netname',
+                         'qos_policy_id': policy_id}}))
+        ])
+        network = self.cloud.create_network("netname",
+                                            qos_policy_id=policy_id
+                                            )
+        self.assertEqual(mock_new_network_rep, network)
+        self.assert_calls()
+
     def test_delete_network(self):
         network_id = "test-net-id"
         network_name = "network"
@@ -346,4 +367,60 @@ class TestNetwork(base.TestCase):
                  json={'network': network})
         ])
         self.assertTrue(self.cloud.get_network_by_id(network_id))
+        self.assert_calls()
+
+    def test_update_network_with_mtu(self):
+        network_id = "test-net-id"
+        network_name = "network"
+        network = {'id': network_id, 'name': network_name}
+        mtu_size = 1500
+        mock_new_network_rep = copy.copy(self.mock_new_network_rep)
+        mock_new_network_rep['mtu'] = mtu_size
+        self.register_uris([
+            dict(method='GET',
+                 uri=self.get_mock_url(
+                     'network', 'public',
+                     append=['v2.0', 'networks.json']),
+                 json={'networks': [network]}),
+            dict(method='PUT',
+                 uri=self.get_mock_url(
+                     'network', 'public',
+                     append=['v2.0', 'networks',
+                             '%s.json' % network_id]),
+                 json={'network': mock_new_network_rep},
+                 validate=dict(
+                     json={'network': {'mtu': mtu_size}}))
+        ])
+        network = self.cloud.update_network(network_name,
+                                            mtu_size=mtu_size)
+        self.assertEqual(mock_new_network_rep, network)
+        self.assert_calls()
+
+    def test_update_network_with_qos_policy_id(self):
+        policy_id = 'test-qos-policy-id'
+        mock_new_network_rep = copy.copy(self.mock_new_network_rep)
+        mock_new_network_rep['qos_policy_id'] = policy_id
+        network_id = "test-net-id"
+        network_name = "network"
+        network = {'id': network_id, 'name': network_name}
+        mock_new_network_rep = copy.copy(self.mock_new_network_rep)
+        mock_new_network_rep['qos_policy_id'] = policy_id
+        self.register_uris([
+            dict(method='GET',
+                 uri=self.get_mock_url(
+                     'network', 'public',
+                     append=['v2.0', 'networks.json']),
+                 json={'networks': [network]}),
+            dict(method='PUT',
+                 uri=self.get_mock_url(
+                     'network', 'public',
+                     append=['v2.0', 'networks',
+                             '%s.json' % network_id]),
+                 json={'network': mock_new_network_rep},
+                 validate=dict(
+                     json={'network': {'qos_policy_id': policy_id}}))
+        ])
+        network = self.cloud.update_network(network_name,
+                                            qos_policy_id=policy_id)
+        self.assertEqual(mock_new_network_rep, network)
         self.assert_calls()

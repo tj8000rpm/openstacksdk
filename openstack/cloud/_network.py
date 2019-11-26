@@ -460,7 +460,7 @@ class NetworkCloudMixin(_normalize.Normalizer):
                        external=False, provider=None, project_id=None,
                        availability_zone_hints=None,
                        port_security_enabled=None,
-                       mtu_size=None, dns_domain=None):
+                       mtu_size=None, dns_domain=None, qos_policy_id=None):
         """Create a network.
 
         :param string name: Name of the network being created.
@@ -479,6 +479,7 @@ class NetworkCloudMixin(_normalize.Normalizer):
             fragmentation. Minimum value is 68 for IPv4, and 1280 for IPv6.
         :param string dns_domain: Specify the DNS domain associated with
             this network.
+        :param qos_policy_id: The ID of the QoS policy to apply for network.
 
         :returns: The network object.
         :raises: OpenStackCloudException on operation error.
@@ -540,6 +541,9 @@ class NetworkCloudMixin(_normalize.Normalizer):
         if dns_domain:
             network['dns_domain'] = dns_domain
 
+        if qos_policy_id:
+            network['qos_policy_id'] = qos_policy_id
+
         data = self.network.post("/networks.json", json={'network': network})
 
         # Reset cache so the new network is picked up
@@ -548,7 +552,7 @@ class NetworkCloudMixin(_normalize.Normalizer):
 
     @_utils.valid_kwargs("name", "shared", "admin_state_up", "external",
                          "provider", "mtu_size", "port_security_enabled",
-                         "dns_domain")
+                         "dns_domain", "qos_policy_id")
     def update_network(self, name_or_id, **kwargs):
         """Update a network.
 
@@ -565,6 +569,7 @@ class NetworkCloudMixin(_normalize.Normalizer):
         :param bool port_security_enabled: Enable or disable port security.
         :param string dns_domain: Specify the DNS domain associated with
             this network.
+        :param qos_policy_id: The ID of the QoS policy to apply for network.
 
         :returns: The updated network object.
         :raises: OpenStackCloudException on operation error.
